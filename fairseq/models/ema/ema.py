@@ -25,8 +25,11 @@ import copy
 import logging
 
 import torch
+from fairseq.distributed import FullyShardedDataParallel
 
 from fairseq import checkpoint_utils
+
+logger = logging.getLogger(__name__)
 
 
 class EMA(object):
@@ -76,16 +79,19 @@ class EMA(object):
         """
 
         self.decay = config.ema_decay
-        self.model = copy.deepcopy(model)
+        if isinstance(model, FullyShardedDataParallel):
+            self.model = model
+            logger.warning("EMA got FSDP model, assuming assigned model is a "
+                           "copy")
+        else:
+            self.model = copy.deepcopy(model)
         self.model.requires_grad_(False)
         self.config = config
         self.skip_keys = skip_keys or set()
         self.fp32_params = {}
 
         if self.config.ema_seed_model is not None:
-            state = checkpoint_utils.load_ema_from_checkpoint(
-                self.config.ema_seed_model
-            )
+            state = checkpoint_utils.load_ema_from_checkpoint(self.config.ema_seed_model)
             self.model.load_state_dict(state["model"], strict=True)
 
         if device is not None:
