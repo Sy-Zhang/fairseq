@@ -352,7 +352,6 @@ def load_model_ensemble(
     suffix="",
     num_shards=1,
     state=None,
-    is_ema=False,
 ):
     """Loads an ensemble of models.
 
@@ -373,7 +372,6 @@ def load_model_ensemble(
         suffix,
         num_shards,
         state,
-        is_ema
     )
     return ensemble, args
 
@@ -401,7 +399,6 @@ def load_model_ensemble_and_task(
     suffix="",
     num_shards=1,
     state=None,
-    is_ema=False,
 ):
     assert state is None or len(filenames) == 1
 
@@ -482,10 +479,7 @@ def load_model_ensemble_and_task(
                     and "num_updates" in state["optimizer_history"][-1]
                 ):
                     model.set_num_updates(state["optimizer_history"][-1]["num_updates"])
-                if not is_ema:
-                    model.load_state_dict(state["model"], strict=strict, model_cfg=cfg.model)
-                else:
-                    model.load_state_dict(state["extra_state"]["ema_fp32_params"], strict=strict, model_cfg=cfg.model)
+                model.load_state_dict(state["model"], strict=strict, model_cfg=cfg.model)
 
             # reset state so it gets loaded for the next model in ensemble
             state = None
