@@ -580,6 +580,7 @@ class Trainer(object):
                         layer._prune_fc_layer(remove_index=remove_index)
                     logger.info(self.model)
                 if self.cfg.checkpoint.load_ema_checkpoint:
+                    logger.info(f"Loading EMA checkpoint from {filename}")
                     self.model.load_state_dict(checkpoint_utils.load_ema_from_checkpoint(filename)["model"], strict=True, model_cfg=self.cfg.model)
                 else:
                     self.model.load_state_dict(state["model"], strict=True, model_cfg=self.cfg.model)

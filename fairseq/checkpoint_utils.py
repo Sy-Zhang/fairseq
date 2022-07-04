@@ -480,6 +480,7 @@ def load_model_ensemble_and_task(
                 ):
                     model.set_num_updates(state["optimizer_history"][-1]["num_updates"])
                 if cfg.checkpoint.load_ema_checkpoint:
+                    logger.info(f"Loading EMA checkpoint from {filename}")
                     model.load_state_dict(load_ema_from_checkpoint(filename)["model"], strict=strict, model_cfg=cfg.model)
                 else:
                     model.load_state_dict(state["model"], strict=strict, model_cfg=cfg.model)
