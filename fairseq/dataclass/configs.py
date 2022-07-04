@@ -776,6 +776,7 @@ class CheckpointConfig(FairseqDataclass):
         },
     )
     model_parallel_size: int = II("common.model_parallel_size")
+    load_ema_checkpoint: bool = field(default=False, metadata={"help": ""})
 
 
 @dataclass

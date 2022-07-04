@@ -579,10 +579,10 @@ class Trainer(object):
                         )
                         layer._prune_fc_layer(remove_index=remove_index)
                     logger.info(self.model)
-
-                self.model.load_state_dict(
-                    state["model"], strict=True, model_cfg=self.cfg.model
-                )
+                if self.cfg.checkpoint.load_ema_checkpoint:
+                    self.model.load_state_dict(checkpoint_utils.load_ema_from_checkpoint(filename)["model"], strict=True, model_cfg=self.cfg.model)
+                else:
+                    self.model.load_state_dict(state["model"], strict=True, model_cfg=self.cfg.model)
                 # save memory for later steps
                 del state["model"]
                 if utils.has_parameters(self.get_criterion()):

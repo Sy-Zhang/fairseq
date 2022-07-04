@@ -479,7 +479,10 @@ def load_model_ensemble_and_task(
                     and "num_updates" in state["optimizer_history"][-1]
                 ):
                     model.set_num_updates(state["optimizer_history"][-1]["num_updates"])
-                model.load_state_dict(state["model"], strict=strict, model_cfg=cfg.model)
+                if cfg.checkpoint.load_ema_checkpoint:
+                    model.load_state_dict(load_ema_from_checkpoint(filename)["model"], strict=strict, model_cfg=cfg.model)
+                else:
+                    model.load_state_dict(state["model"], strict=strict, model_cfg=cfg.model)
 
             # reset state so it gets loaded for the next model in ensemble
             state = None
