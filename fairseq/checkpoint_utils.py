@@ -399,6 +399,7 @@ def load_model_ensemble_and_task(
     suffix="",
     num_shards=1,
     state=None,
+    load_ema_checkpoint=False
 ):
     assert state is None or len(filenames) == 1
 
@@ -439,7 +440,10 @@ def load_model_ensemble_and_task(
                 task.load_state_dict(state["task_state"])
 
             if "fsdp_metadata" in state and num_shards > 1:
-                model_shard_state["shard_weights"].append(state["model"])
+                if load_ema_checkpoint:
+                    model_shard_state["shard_weights"].append(load_ema_from_checkpoint(filename)["model"])
+                else:
+                    model_shard_state["shard_weights"].append(state["model"])
                 model_shard_state["shard_metadata"].append(state["fsdp_metadata"])
                 # check FSDP import before the code goes too far
                 if not has_FSDP:
