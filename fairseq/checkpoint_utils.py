@@ -352,6 +352,7 @@ def load_model_ensemble(
     suffix="",
     num_shards=1,
     state=None,
+    load_ema_checkpoint=False
 ):
     """Loads an ensemble of models.
 
@@ -372,6 +373,7 @@ def load_model_ensemble(
         suffix,
         num_shards,
         state,
+        load_ema_checkpoint
     )
     return ensemble, args
 
