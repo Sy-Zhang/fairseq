@@ -55,7 +55,7 @@ def consolidate_fsdp_shards(pth_prefix: str, save_prefix=None, strict=False, new
                 weights.append(ckpt["extra_state"]["ema_fp32_params"])
             else:
                 weights.append(ckpt["model"])
-            metadata.append(ckpt["shard_metadata"])
+            metadata.append(ckpt["fsdp_metadata"])
     assert weights, f'all files were considered experts: {all_ckpt_files}'
     do_consolidate = True
     if 'decoder.embed_tokens.weight' in weights[0].keys():
