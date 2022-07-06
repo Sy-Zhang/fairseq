@@ -9,6 +9,8 @@ import logging
 import os
 import shutil
 from typing import List, Optional
+import json
+import torch
 
 
 logger = logging.getLogger(__file__)
@@ -194,3 +196,30 @@ class PathManager:
         if IOPathManager:
             return IOPathManager.async_close()
         return False
+
+def torch_load_cpu(path):
+    state = torch.load(path, map_location=torch.device("cpu"))
+    # If model was trained with fp16, model from loaded state_dict can be moved to fp16
+    if isinstance(state, dict) and 'cfg' in state:
+        if state['cfg']['common']['fp16'] or state['cfg']['common']['memory_efficient_fp16']:
+            state['model'] = {k: v.half() for k, v in state['model'].items()}
+    return state
+
+
+def save_json(content, path, indent=4):
+    with open(path, "w") as f:
+        json.dump(content, f, indent=indent)
+
+
+def load_json(p):
+    return json.load(open(p))
+
+def load_jsonl(path):
+    with open(path).read() as jsonl_content:
+        result = [json.loads(jline) for jline in jsonl_content.splitlines()]
+    return result
+
+def load_and_pop_last_optimizer_state(pth):
+    st = torch_load_cpu(pth)
+    st.pop('last_optimizer_state', None)
+    return st
