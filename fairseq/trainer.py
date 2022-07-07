@@ -272,22 +272,23 @@ class Trainer(object):
 
     def _build_ema(self):
         if self.cfg.ema.store_ema:
-            if self.is_fsdp:
-                # Build FSDP model
-                with fsdp_enable_wrap(self.cfg.distributed_training):
-                    model = fsdp_wrap(self.task.build_model(self.cfg.model))
-
-                if self.cfg.common.fp16:
-                    model = model.half()
-
-                # Copy FSDP model state (since copy.deepcopy doesn't work)
-                state_dict = self.model.state_dict()
-                if not self.cfg.distributed_training.use_sharded_state:
-                    state_dict = distributed_utils.broadcast_object(state_dict, src_rank=0, group=self.model.process_group)
-                model.load_state_dict(state_dict)
-                self._ema = build_ema(model, self.cfg.ema, self.device)
-            else:
-                self._ema = build_ema(self._model, self.cfg.ema, self.device)
+            self._ema = build_ema(self._model, self.cfg.ema, self.device)
+            # if self.is_fsdp:
+            #     # Build FSDP model
+            #     with fsdp_enable_wrap(self.cfg.distributed_training):
+            #         model = fsdp_wrap(self.task.build_model(self.cfg.model))
+            #
+            #     if self.cfg.common.fp16:
+            #         model = model.half()
+            #
+            #     # Copy FSDP model state (since copy.deepcopy doesn't work)
+            #     state_dict = self.model.state_dict()
+            #     if not self.cfg.distributed_training.use_sharded_state:
+            #         state_dict = distributed_utils.broadcast_object(state_dict, src_rank=0, group=self.model.process_group)
+            #     model.load_state_dict(state_dict)
+            #     self._ema = build_ema(model, self.cfg.ema, self.device)
+            # else:
+            #     self._ema = build_ema(self._model, self.cfg.ema, self.device)
             logger.info("Exponential Moving Average Shadow Model is initialized.")
 
     @property
@@ -579,11 +580,13 @@ class Trainer(object):
                         )
                         layer._prune_fc_layer(remove_index=remove_index)
                     logger.info(self.model)
+                strict = True
+                if getattr(self.cfg.model, "finetune_from_image_model", False): strict = False
                 if self.cfg.checkpoint.load_ema_checkpoint:
                     logger.info(f"Loading EMA checkpoint from {filename}")
-                    self.model.load_state_dict(checkpoint_utils.load_ema_from_checkpoint(filename)["model"], strict=True, model_cfg=self.cfg.model)
+                    self.model.module.load_state_dict(checkpoint_utils.load_ema_from_checkpoint(filename)["model"], strict=strict, model_cfg=self.cfg.model)
                 else:
-                    self.model.load_state_dict(state["model"], strict=True, model_cfg=self.cfg.model)
+                    self.model.load_state_dict(state["model"], strict=strict, model_cfg=self.cfg.model)
                 # save memory for later steps
                 del state["model"]
                 if utils.has_parameters(self.get_criterion()):
