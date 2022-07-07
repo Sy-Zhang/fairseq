@@ -56,7 +56,6 @@ def consolidate_fsdp_shards(pth_prefix: str, save_prefix=None, strict=False, new
                 weights.append(ckpt["extra_state"]["ema_fp32_params"])
             else:
                 weights.append(ckpt["model"])
-            weights.append(ckpt["model"])
             if 'ema' in ckpt["extra_state"]:
                 ema_weights.append(ckpt["extra_state"]["ema_fp32_params"])
             metadata.append(ckpt["fsdp_metadata"])
