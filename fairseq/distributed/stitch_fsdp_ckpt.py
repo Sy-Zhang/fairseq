@@ -35,7 +35,6 @@ def consolidate_fsdp_shards(pth_prefix: str, save_prefix=None, strict=False, new
     assert all_ckpt_files, f"no paths matched {pth_prefix}*shard*.pt"
     weights = []
     metadata = []
-    ema_weights = []
     expert_paths = []
     expert_dest_paths = []
     expert_ranks = []
@@ -52,9 +51,10 @@ def consolidate_fsdp_shards(pth_prefix: str, save_prefix=None, strict=False, new
             expert_dest_paths.append(f"{save_prefix}-rank-{r}.pt")
         else:
             ckpt = load_and_pop_last_optimizer_state(p)
-            weights.append(ckpt["model"])
-            if 'ema' in ckpt["extra_state"]:
-                ema_weights.append(ckpt["extra_state"]["ema_fp32_params"])
+            if is_ema:
+                weights.append(ckpt["extra_state"]["ema_fp32_params"])
+            else:
+                weights.append(ckpt["model"])
             metadata.append(ckpt["fsdp_metadata"])
     assert weights, f'all files were considered experts: {all_ckpt_files}'
     do_consolidate = True
@@ -70,11 +70,11 @@ def consolidate_fsdp_shards(pth_prefix: str, save_prefix=None, strict=False, new
         else:
             logger.info("FSDP.consolidate_shard_weights")
             consolidated_weights = FSDP.consolidate_shard_weights(shard_weights=weights, shard_metadata=metadata, strict=strict)
-            if "ema" in ckpt["extra_state"]:
-                consolidated_ema_weights = FSDP.consolidate_shard_weights(shard_weights=ema_weights, shard_metadata=metadata, strict=strict)
-                ckpt['extra_state']['ema'] = consolidated_ema_weights
-                ckpt['extra_state']['ema_fp32_params'] = consolidated_ema_weights
-                del ema_weights
+            # if "ema" in ckpt["extra_state"]:
+            #     consolidated_ema_weights = FSDP.consolidate_shard_weights(shard_weights=ema_weights, shard_metadata=metadata, strict=strict)
+            #     ckpt['extra_state']['ema'] = consolidated_ema_weights
+            #     ckpt['extra_state']['ema_fp32_params'] = consolidated_ema_weights
+            #     del ema_weights
         del weights, metadata
         gc.collect()
         done_consolidate = time.time()
