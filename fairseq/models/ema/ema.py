@@ -79,11 +79,11 @@ class EMA(object):
         """
 
         self.decay = config.ema_decay
-        # if isinstance(model, FullyShardedDataParallel):
-        #     self.model = model
-        #     logger.warning("EMA got FSDP model, assuming assigned model is a copy")
-        # else:
-        self.model = copy.deepcopy(model)
+        if isinstance(model, FullyShardedDataParallel):
+            self.model = model
+            logger.warning("EMA got FSDP model, assuming assigned model is a copy")
+        else:
+            self.model = copy.deepcopy(model)
         self.model.requires_grad_(False)
         self.config = config
         self.skip_keys = skip_keys or set()

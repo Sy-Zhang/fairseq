@@ -273,22 +273,22 @@ class Trainer(object):
     def _build_ema(self):
         if self.cfg.ema.store_ema:
             self._ema = build_ema(self._model, self.cfg.ema, self.device)
-            # if self.is_fsdp:
-            #     # Build FSDP model
-            #     with fsdp_enable_wrap(self.cfg.distributed_training):
-            #         model = fsdp_wrap(self.task.build_model(self.cfg.model))
-            #
-            #     if self.cfg.common.fp16:
-            #         model = model.half()
-            #
-            #     # Copy FSDP model state (since copy.deepcopy doesn't work)
-            #     state_dict = self.model.state_dict()
-            #     if not self.cfg.distributed_training.use_sharded_state:
-            #         state_dict = distributed_utils.broadcast_object(state_dict, src_rank=0, group=self.model.process_group)
-            #     model.load_state_dict(state_dict)
-            #     self._ema = build_ema(model, self.cfg.ema, self.device)
-            # else:
-            #     self._ema = build_ema(self._model, self.cfg.ema, self.device)
+            if self.is_fsdp:
+                # Build FSDP model
+                with fsdp_enable_wrap(self.cfg.distributed_training):
+                    model = fsdp_wrap(self.task.build_model(self.cfg.model))
+
+                if self.cfg.common.fp16:
+                    model = model.half()
+
+                # Copy FSDP model state (since copy.deepcopy doesn't work)
+                state_dict = self.model.state_dict()
+                if not self.cfg.distributed_training.use_sharded_state:
+                    state_dict = distributed_utils.broadcast_object(state_dict, src_rank=0, group=self.model.process_group)
+                model.load_state_dict(state_dict)
+                self._ema = build_ema(model, self.cfg.ema, self.device)
+            else:
+                self._ema = build_ema(self._model, self.cfg.ema, self.device)
             logger.info("Exponential Moving Average Shadow Model is initialized.")
 
     @property
