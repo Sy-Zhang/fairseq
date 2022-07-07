@@ -8,6 +8,7 @@ Train a network across multiple GPUs.
 """
 
 import contextlib
+import copy
 import logging
 import os
 import sys
@@ -584,7 +585,8 @@ class Trainer(object):
                 if getattr(self.cfg.model, "finetune_from_image_model", False): strict = False
                 if self.cfg.checkpoint.load_ema_checkpoint:
                     logger.info(f"Loading EMA checkpoint from {filename}")
-                    self.model.load_state_dict(checkpoint_utils.load_ema_from_checkpoint(filename)["model"], strict=strict, model_cfg=self.cfg.model)
+                    ema_model_state_dict = checkpoint_utils.load_ema_from_checkpoint(filename)["model"]
+                    self.model.load_state_dict(copy.deepcopy(ema_model_state_dict), strict=strict, model_cfg=self.cfg.model)
                 else:
                     self.model.load_state_dict(state["model"], strict=strict, model_cfg=self.cfg.model)
                 # save memory for later steps
