@@ -273,7 +273,6 @@ class Trainer(object):
 
     def _build_ema(self):
         if self.cfg.ema.store_ema:
-            self._ema = build_ema(self._model, self.cfg.ema, self.device)
             if self.is_fsdp:
                 # Build FSDP model
                 with fsdp_enable_wrap(self.cfg.distributed_training):
