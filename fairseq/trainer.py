@@ -583,12 +583,12 @@ class Trainer(object):
                     logger.info(self.model)
                 strict = True
                 if getattr(self.cfg.model, "finetune_from_image_model", False): strict = False
-                if self.cfg.checkpoint.load_ema_checkpoint:
-                    logger.info(f"Loading EMA checkpoint from {filename}")
-                    ema_model_state_dict = checkpoint_utils.load_ema_from_checkpoint(filename)["model"]
-                    self.model.load_state_dict(copy.deepcopy(ema_model_state_dict), strict=strict, model_cfg=self.cfg.model)
-                else:
-                    self.model.load_state_dict(state["model"], strict=strict, model_cfg=self.cfg.model)
+                # if self.cfg.checkpoint.load_ema_checkpoint:
+                #     logger.info(f"Loading EMA checkpoint from {filename}")
+                #     ema_model_state_dict = checkpoint_utils.load_ema_from_checkpoint(filename)["model"]
+                #     self.model.load_state_dict(copy.deepcopy(ema_model_state_dict), strict=strict, model_cfg=self.cfg.model)
+                # else:
+                self.model.load_state_dict(state["model"], strict=strict, model_cfg=self.cfg.model)
                 # save memory for later steps
                 del state["model"]
                 if utils.has_parameters(self.get_criterion()):
