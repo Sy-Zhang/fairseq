@@ -582,9 +582,7 @@ class Trainer(object):
                     logger.info(self.model)
 
                 if getattr(self.cfg.model, "finetune_from_image_model", False):
-                    self.model.use_sharded_state = False
                     self.model.load_state_dict(state["model"], strict=False, model_cfg=self.cfg.model)
-                    self.model.use_sharded_state = True
                 else:
                     self.model.load_state_dict(state["model"], strict=True, model_cfg=self.cfg.model)
                 # if self.cfg.checkpoint.load_ema_checkpoint:
@@ -674,12 +672,7 @@ class Trainer(object):
                     )
                 else:
                     logger.info("Loading EMA from checkpoint")
-                    if getattr(self.cfg.model, "finetune_from_image_model", False):
-                        self.ema.model.use_sharded_state = False
-                        self.ema.restore(extra_state["ema"], build_fp32_params=False)
-                        self.ema.model.use_sharded_state = True
-                    else:
-                        self.ema.restore(extra_state["ema"], build_fp32_params=False)
+                    self.ema.restore(extra_state["ema"], build_fp32_params=False)
 
                     if self.cfg.ema.ema_fp32:
                         if "ema_fp32_params" in extra_state:
