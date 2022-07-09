@@ -669,9 +669,12 @@ class Trainer(object):
                         "EMA not found in checkpoint. But store_ema is True. "
                         "EMA is re-initialized from checkpoint."
                     )
-                    self.ema.restore(
-                        state["model"], build_fp32_params=self.cfg.ema.ema_fp32
-                    )
+                    if getattr(self.cfg.model, "finetune_from_image_model", False):
+                        self.ema.model.use_sharded_state = False
+                        self.ema.restore(state["model"], build_fp32_params=self.cfg.ema.ema_fp32)
+                        self.ema.model.use_sharded_state = True
+                    else:
+                        self.ema.restore(state["model"], build_fp32_params=self.cfg.ema.ema_fp32)
                 else:
                     logger.info("Loading EMA from checkpoint")
                     self.ema.restore(extra_state["ema"], build_fp32_params=False)
