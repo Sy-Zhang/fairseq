@@ -582,7 +582,9 @@ class Trainer(object):
                     logger.info(self.model)
 
                 if getattr(self.cfg.model, "finetune_from_image_model", False):
+                    self.model.use_sharded_state = False
                     self.model.load_state_dict(state["model"], strict=False, model_cfg=self.cfg.model)
+                    self.model.use_sharded_state = True
                 else:
                     self.model.load_state_dict(state["model"], strict=True, model_cfg=self.cfg.model)
                 # if self.cfg.checkpoint.load_ema_checkpoint:
