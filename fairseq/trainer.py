@@ -581,18 +581,7 @@ class Trainer(object):
                         layer._prune_fc_layer(remove_index=remove_index)
                     logger.info(self.model)
 
-                if getattr(self.cfg.model, "finetune_from_image_model", False):
-                    # self.model.use_sharded_state = False
-                    self.model.load_state_dict(state["model"], strict=False, model_cfg=self.cfg.model)
-                    # self.model.use_sharded_state = True
-                else:
-                    self.model.load_state_dict(state["model"], strict=True, model_cfg=self.cfg.model)
-                # if self.cfg.checkpoint.load_ema_checkpoint:
-                #     logger.info(f"Loading EMA checkpoint from {filename}")
-                #     ema_model_state_dict = checkpoint_utils.load_ema_from_checkpoint(filename)["model"]
-                #     self.model.load_state_dict(copy.deepcopy(ema_model_state_dict), strict=strict, model_cfg=self.cfg.model)
-                # else:
-                # save memory for later steps
+                self.model.load_state_dict(state["model"], strict=True, model_cfg=self.cfg.model)
                 del state["model"]
                 if utils.has_parameters(self.get_criterion()):
                     self.get_criterion().load_state_dict(
@@ -672,11 +661,6 @@ class Trainer(object):
                     self.ema.restore(state["model"], build_fp32_params=self.cfg.ema.ema_fp32)
                 else:
                     logger.info("Loading EMA from checkpoint")
-                    # if getattr(self.cfg.model, "finetune_from_image_model", False):
-                    #     self.ema.model.use_sharded_state = False
-                    #     self.ema.restore(extra_state["ema"], build_fp32_params=False)
-                    #     self.ema.model.use_sharded_state = True
-                    # else:
                     self.ema.restore(extra_state["ema"], build_fp32_params=False)
 
                     if self.cfg.ema.ema_fp32:
