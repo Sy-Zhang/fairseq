@@ -152,6 +152,7 @@ class StreamingEpochBatchIterator(EpochBatchIterating):
         dataset,
         max_sentences=1,
         collate_fn=None,
+        drop_last=False,
         epoch=1,
         num_workers=0,
         buffer_size=0,
@@ -167,6 +168,7 @@ class StreamingEpochBatchIterator(EpochBatchIterating):
         # in a shared computing environment.
         self.buffer_size = min(buffer_size, 20)
         self.timeout = timeout
+        self.drop_last = drop_last
 
         self._current_epoch_iterator = None
 
@@ -216,6 +218,7 @@ class StreamingEpochBatchIterator(EpochBatchIterating):
             collate_fn=self.collate_fn,
             num_workers=self.num_workers,
             timeout=self.timeout,
+            drop_last=self.drop_last,
             worker_init_fn=worker_init_fn,
             pin_memory=True,
             persistent_workers=self.num_workers > 0,
