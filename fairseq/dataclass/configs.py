@@ -1100,7 +1100,7 @@ class EMAConfig(FairseqDataclass):
         default=False,
         metadata={"help": "If true, store EMA model in fp32 even if model is in fp16"},
     )
-
+    ema_skip_keys: Optional[List[str]] = field(default=None, metadata={"help": {}})
 
 @dataclass
 class FairseqConfig(FairseqDataclass):

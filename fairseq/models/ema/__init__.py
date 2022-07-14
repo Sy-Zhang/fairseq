@@ -10,7 +10,7 @@ from .ema import EMA
 
 
 def build_ema(model, cfg, device):
-    return EMA(model, cfg, device)
+    return EMA(model, cfg, device, cfg.ema_skip_keys)
 
 
 # automatically import any Python files in the models/ema/ directory
