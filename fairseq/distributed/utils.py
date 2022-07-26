@@ -642,7 +642,7 @@ def all_reduce_dict(data: Mapping[str, Any], device, group) -> Dict[str, Any]:
         device (torch.device): device for the reduction
         group: group of the collective
     """
-    data_keys = list(data.keys())
+    data_keys = sorted(list(data.keys()))
 
     # We want to separately reduce items that are already on the
     # device and items on CPU for performance reasons.
