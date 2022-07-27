@@ -11,7 +11,7 @@ import os
 import queue
 import time
 from threading import Thread
-from typing import Iterator, List
+from typing import Iterator, List, Optional
 
 import numpy as np
 import torch
@@ -127,6 +127,40 @@ class EpochBatchIterating(object):
     def first_batch(self):
         return "DUMMY"
 
+class StreamingCountingIterator(object):
+    """Wrapper around an iterable that maintains the iteration count.
+    Args:
+        iterable (iterable): iterable to wrap
+    Attributes:
+        n (int): number of elements consumed from this iterator
+    """
+
+    def __init__(self, iterable):
+        try:
+            import more_itertools
+        except ImportError:
+            raise ImportError(
+                "more_itertools is required for streaming iterators; "
+                "please install with: pip install more_itertools"
+            )
+        self._peekable_itr = more_itertools.peekable(iterable)
+        self._countable_itr = more_itertools.countable(self._peekable_itr)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        return next(self._countable_itr)
+
+    def __len__(self):
+        return 0
+
+    def has_next(self):
+        return bool(self._peekable_itr)  # whether peekable has items
+
+    @property
+    def n(self):
+        return self._countable_itr.items_seen
 
 class StreamingEpochBatchIterator(EpochBatchIterating):
     """A steaming-style iterator over a :class:`torch.utils.data.IterableDataset`.
@@ -170,7 +204,7 @@ class StreamingEpochBatchIterator(EpochBatchIterating):
         self.timeout = timeout
         self.drop_last = drop_last
 
-        self._current_epoch_iterator = None
+        self._current_epoch_iterator: Optional[StreamingCountingIterator] = None
 
     @property
     def next_epoch_idx(self):
